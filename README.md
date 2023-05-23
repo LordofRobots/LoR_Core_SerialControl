@@ -3,7 +3,7 @@ Contains the configurations for controlling a MiniBot via serial interface.
 
 Board: ESP32 dev module
 
-This is an Arduino code designed to control a 4-wheel drive robot using an ESP32 development module. The motor controls are configured in a "standard tank style". Serial commands are used to manipulate the robot's movements. This code can be paired with a CAMRON module to complete the CAMRON MiniBot system.
+This is an Arduino code designed to control a 4-wheel drive robot using an ESP32 development module. The motor controls are configured in a "standard tank style". Serial commands are used to manipulate the robot's movements. This code can be uploaded to a LoR_Core module and paired with a CAMRON module to complete the CAMRON MiniBot system.
 
 The major sections of the code can be summarized as follows:
 
