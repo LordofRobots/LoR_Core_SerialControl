@@ -10,7 +10,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // version control and major control function settings
-String Version = "Base Version : LoR Core Serial Control : 1.0.1";
+String Version = "Base Version : LoR Core Serial Control : 1.0.2";
 
 // IO Interface Definitions
 #define LED_DataPin 12
@@ -95,7 +95,7 @@ int SlewRateFunction(int Input_Target, int Input_Current) {
 // Function to handle serial control input
 // Define variables to store the current motor speeds
 bool STOP_FLAG = true;
-long TIME_OUT = 0;
+long TIME_OUT = 1;
 int Serial_Input_L_Set, Serial_Input_R_Set = 0;
 int Serial_Input_L_Target, Serial_Input_R_Target = 0;
 String LastCommand = "Stop";
@@ -235,7 +235,7 @@ void setup() {
 }
 
 long minimumLED_displayTime = 200;
-long LED_displayTime = 0;
+long LED_displayTime = 1;
 void loop() {
   // Main loop to handle serial input
   if (SerialControl()) {  //Serial Control
