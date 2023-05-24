@@ -10,7 +10,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // version control and major control function settings
-String Version = "Base Version : LoR Core Serial Control : 1.0.0";
+String Version = "Base Version : LoR Core Serial Control : 1.0.1";
 
 // IO Interface Definitions
 #define LED_DataPin 12
@@ -52,18 +52,7 @@ const int MOTOR_PWM_Channel_B[] = { Motor_M1_B, Motor_M2_B, Motor_M3_B, Motor_M4
 const int PWM_FREQUENCY = 20000;
 const int PWM_RESOLUTION = 8;
 
-// NeoPixel Configurations
-Adafruit_NeoPixel strip(LED_COUNT, LED_DataPin, NEO_GRB + NEO_KHZ800);
-const uint32_t RED = strip.Color(255, 0, 0, 0);
-const uint32_t GREEN = strip.Color(0, 255, 0, 0);
-const uint32_t BLUE = strip.Color(0, 0, 255, 0);
-const uint32_t WHITE = strip.Color(0, 0, 0, 255);
-const uint32_t PURPLE = strip.Color(255, 0, 255, 0);
-const uint32_t CYAN = strip.Color(0, 255, 255, 0);
-const uint32_t YELLOW = strip.Color(255, 255, 0, 0);
-
-
-
+// Function to control motor output based on input values
 // Motor speed limits and starting speed
 const int MAX_SPEED = 255;
 const int MIN_SPEED = -255;
@@ -71,79 +60,6 @@ const int MIN_STARTING_SPEED = 140;
 const int STOP = 0;
 const int SerialControl_SPEED = 110;
 bool INVERT = false;
-
-
-
-// Set up pins, LED PWM functionalities and Serial and Serial2 communication
-void setup() {
-  // Set up the pins
-  pinMode(LED_DataPin, OUTPUT);
-  pinMode(ControllerSelectPin, INPUT_PULLUP);
-  pinMode(MotorEnablePin, OUTPUT);
-
-  for (int i = 0; i < 6; i++) {
-    pinMode(motorPins_A[i], OUTPUT);
-    pinMode(motorPins_B[i], OUTPUT);
-    digitalWrite(motorPins_A[i], 0);
-    digitalWrite(motorPins_B[i], 0);
-  }
-
-  // output preset bias
-  digitalWrite(LED_DataPin, 0);
-  digitalWrite(MotorEnablePin, 1);
-
-  // configure LED PWM functionalitites
-  for (int i = 0; i < 6; i++) {
-    ledcSetup(MOTOR_PWM_Channel_A[i], PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcSetup(MOTOR_PWM_Channel_B[i], PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcAttachPin(motorPins_A[i], MOTOR_PWM_Channel_A[i]);
-    ledcAttachPin(motorPins_B[i], MOTOR_PWM_Channel_B[i]);
-  }
-
-  // Neopixels Configuration
-  strip.begin();            // INITIALIZE NeoPixel strip object
-  strip.show();             // Turn OFF all pixels ASAP
-  strip.setBrightness(50);  // Set BRIGHTNESS to about 1/5 (max = 255)
-
-  // Serial comms configurations (USB for debug messages)
-  Serial.begin(115200);  // USB Serial
-  delay(1500);
-
-  //debug messages
-  Serial.print("Serial Control: ");
-
-  //Serial Contol port configuration as input for control from modules like Camron. (Alternative control method)
-  Serial2.begin(115200, SERIAL_8N1, 16, 17);  //  secondary serial to communicate with the other devices like Camron module
-  Serial.println("ready");
-  delay(500);
-
-  Serial.println("CORE System Ready! " + Version);
-}
-
-long minimumLED_displayTime = 200;
-long LED_displayTime = 0;
-void loop() {
-  // Main loop to handle serial input
-  if (SerialControl()) {  //Serial Control
-    NeoPixel_SetColour(GREEN);
-    LED_displayTime = millis() + minimumLED_displayTime;
-  } else {  //Stop/Standby
-    if (millis() > LED_displayTime) NeoPixel_SetColour(RED);
-  }
-  Motor_Contol();
-}
-
-// Set a specific color for the entire NeoPixel strip
-void NeoPixel_SetColour(uint32_t color) {
-  for (int i = 0; i < strip.numPixels(); i++) {  // For each pixel in strip...
-    strip.setPixelColor(i, color);               //  Set pixel's color (in RAM)
-  }
-  strip.show();  // Update strip with new contents
-}
-
-
-
-// Function to control motor output based on input values
 void Set_Motor_Output(int Output, int Motor_ChA, int Motor_ChB) {
   int DEAD_BAND = 5;
   if (INVERT) Output = -Output;
@@ -228,8 +144,6 @@ boolean SerialControl() {
       STOP_FLAG = true;
     }
   }
-
-
   if (millis() > TIME_OUT && TIME_OUT != 0) {
     Serial_Input_L_Target = STOP;
     Serial_Input_R_Target = STOP;
@@ -239,8 +153,6 @@ boolean SerialControl() {
 
   Serial_Input_L_Set = SlewRateFunction(Serial_Input_L_Target, Serial_Input_L_Set);
   Serial_Input_R_Set = SlewRateFunction(Serial_Input_R_Target, Serial_Input_R_Set);
-
-
 
   if (STOP_FLAG) return false;
   else return true;
@@ -257,3 +169,82 @@ void Motor_STOP() {
   Serial_Input_L_Set = SlewRateFunction(STOP, Serial_Input_L_Set);
   Serial_Input_R_Set = SlewRateFunction(STOP, Serial_Input_R_Set);
 }
+
+// NeoPixel Configurations
+Adafruit_NeoPixel strip(LED_COUNT, LED_DataPin, NEO_GRB + NEO_KHZ800);
+const uint32_t RED = strip.Color(255, 0, 0, 0);
+const uint32_t GREEN = strip.Color(0, 255, 0, 0);
+const uint32_t BLUE = strip.Color(0, 0, 255, 0);
+const uint32_t WHITE = strip.Color(0, 0, 0, 255);
+const uint32_t PURPLE = strip.Color(255, 0, 255, 0);
+const uint32_t CYAN = strip.Color(0, 255, 255, 0);
+const uint32_t YELLOW = strip.Color(255, 255, 0, 0);
+
+// Set a specific color for the entire NeoPixel strip
+void NeoPixel_SetColour(uint32_t color) {
+  for (int i = 0; i < strip.numPixels(); i++) {  // For each pixel in strip...
+    strip.setPixelColor(i, color);               //  Set pixel's color (in RAM)
+  }
+  strip.show();  // Update strip with new contents
+}
+
+// Set up pins, LED PWM functionalities and Serial and Serial2 communication
+void setup() {
+  // Set up the pins
+  pinMode(LED_DataPin, OUTPUT);
+  pinMode(ControllerSelectPin, INPUT_PULLUP);
+  pinMode(MotorEnablePin, OUTPUT);
+
+  for (int i = 0; i < 6; i++) {
+    pinMode(motorPins_A[i], OUTPUT);
+    pinMode(motorPins_B[i], OUTPUT);
+    digitalWrite(motorPins_A[i], 0);
+    digitalWrite(motorPins_B[i], 0);
+  }
+
+  // output preset bias
+  digitalWrite(LED_DataPin, 0);
+  digitalWrite(MotorEnablePin, 1);
+
+  // configure LED PWM functionalitites
+  for (int i = 0; i < 6; i++) {
+    ledcSetup(MOTOR_PWM_Channel_A[i], PWM_FREQUENCY, PWM_RESOLUTION);
+    ledcSetup(MOTOR_PWM_Channel_B[i], PWM_FREQUENCY, PWM_RESOLUTION);
+    ledcAttachPin(motorPins_A[i], MOTOR_PWM_Channel_A[i]);
+    ledcAttachPin(motorPins_B[i], MOTOR_PWM_Channel_B[i]);
+  }
+
+  // Neopixels Configuration
+  strip.begin();            // INITIALIZE NeoPixel strip object
+  strip.show();             // Turn OFF all pixels ASAP
+  strip.setBrightness(50);  // Set BRIGHTNESS to about 1/5 (max = 255)
+
+  // Serial comms configurations (USB for debug messages)
+  Serial.begin(115200);  // USB Serial
+  delay(1500);
+
+  //debug messages
+  Serial.print("Serial Control: ");
+
+  //Serial Contol port configuration as input for control from modules like Camron. (Alternative control method)
+  Serial2.begin(115200, SERIAL_8N1, 16, 17);  //  secondary serial to communicate with the other devices like Camron module
+  Serial.println("ready");
+  delay(500);
+
+  Serial.println("CORE System Ready! " + Version);
+}
+
+long minimumLED_displayTime = 200;
+long LED_displayTime = 0;
+void loop() {
+  // Main loop to handle serial input
+  if (SerialControl()) {  //Serial Control
+    NeoPixel_SetColour(GREEN);
+    LED_displayTime = millis() + minimumLED_displayTime;
+  } else {  //Stop/Standby
+    if (millis() > LED_displayTime) NeoPixel_SetColour(RED);
+  }
+  Motor_Contol();
+}
+
+
